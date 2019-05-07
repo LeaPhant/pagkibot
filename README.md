@@ -31,7 +31,7 @@ cd "/home/<username>/Documents/pagkibot"
 npm i
 ```
 
-- Now open the `credentials.json` file and enter the needed information in between the quotes
+- Now open the `credentials.json` file in any text editor and enter the required information in between the quotes
 
 ```JSON
 {
