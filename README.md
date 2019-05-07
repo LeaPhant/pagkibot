@@ -50,27 +50,7 @@ You can find the Twitch Client ID [like this](https://i.imgur.com/XuDlRJO.png) i
 
 You can find the Discord Client ID [like this](https://i.imgur.com/OSxCT42.png) in the [Discord developer console](https://discordapp.com/developers/applications/).
 
-You can find the Discord Token [like this](https://i.imgur.com/nCIFaP5.png) in the [Discord developer console](http​
-73
-Linux (leave out the `sudo` if you're logged in as root):
-74
-​
-75
-​
-76
-```
-77
-sudo npm i -g pm2
-78
-pm2 start --name pagkibot index.js
-79
-pm2 save
-80
-pm2 startup
-81
-```
-82
-s://discordapp.com/developers/applications/) (you will be prompted add a bot to your application first, just follow the instructions).
+You can find the Discord Token [like this](https://i.imgur.com/nCIFaP5.png) in the [Discord developer console](https://discordapp.com/developers/applications/) (you will be prompted add a bot to your application first, just follow the instructions)
 
 - Now that the information is filled in, run the bot once
 
@@ -79,7 +59,7 @@ node index
 ```
 
 - if there's no errors you should be greeted with an invite link. Use this to invite the bot to every server you want it in.
-- The next step is setting up an automated way of keeping this bot running 24/7 cause it would be pointless otherwis
+- The next step is setting up an automated way of keeping this bot running 24/7 cause it would be pointless otherwise
 
 ```
 npm i -g pm2
@@ -90,7 +70,7 @@ pm2 startup
 
 (On Linux you might have to put `sudo` before the `npm`-command)
 
-- Now the bot should be up and running!
+- Now the bot should be up and running and also automatically start on boot.
 
 ## Configuration
 
