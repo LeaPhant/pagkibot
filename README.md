@@ -12,7 +12,7 @@ Discord bot for instant Twitch live notifications using Twitch's PubSub API.
 
 - [Download](https://github.com/LeaPhant/pagkibot/archive/master.zip) this repo and unzip it into the location you want to run the bot from
 - Open the terminal on Mac/Linux or a cmd.exe/PowerShell window with administrator rights on Windows
-- Navigate into the folder you unzipped it
+- Navigate into the folder you unzipped it into
 
 Windows example:
 
