@@ -58,6 +58,8 @@ You can find the Discord Token [like this](https://i.imgur.com/nCIFaP5.png) in t
 node index
 ```
 
+Press Ctrl+C to stop the bot again.
+
 - if there's no errors you should be greeted with an invite link. Use this to invite the bot to every server you want it in.
 - The next step is setting up an automated way of keeping this bot running 24/7 cause it would be pointless otherwise
 
