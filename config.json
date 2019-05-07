@@ -38,10 +38,6 @@
             "enabled": true,
             "cmd": ["twitch-unnotify"],
             "perms": []
-        },
-        
-        "twitchMention": {
-        
         }
     }
 }
