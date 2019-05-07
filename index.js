@@ -836,6 +836,10 @@ sockets.forEach((socket, index) => {
         if(open_sockets == SOCKET_COUNT){ // all sockets opened, start subscribing to events
             for(id in trackedChannels){
                 let channel = trackedChannels[id];
+                
+                if(Object.keys(channel.channels).length == null && !config.allowDM)
+                    return false;
+                
                 trackTwitchUser(id, channel);
             }
             
