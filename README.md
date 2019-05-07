@@ -2,6 +2,10 @@
 
 Discord bot for instant Twitch live notifications using Twitch's PubSub API.
 
+Tracked channels are updated every minute with updated titles, game names and viewcounts.
+
+<img src="https://i.imgur.com/8fnjDEu.png">
+
 ## Prequisites
 
 - Node.js (Download from [here](https://nodejs.org/))
@@ -43,6 +47,7 @@ npm i
         "clientID": "XXXXXXXXXXXXXXX",
         "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     }
+    
 }
 ```
 
@@ -140,3 +145,7 @@ Set another channel for the stream announcements to appear in. You could for exa
 Get an overview of the tracked Twitch channels for the current Discord channel.
 
 **Example**: !twitch-tracking
+
+## Limitations
+
+The current limit of the maximum amount of tracked channels is around ~250 per IP address due to Twitch restrictions. This is the reason I can't host this bot and have to let people host it themselves.
