@@ -149,3 +149,7 @@ Get an overview of the tracked Twitch channels for the current Discord channel.
 ## Limitations
 
 The current limit of the maximum amount of tracked channels is around ~250 per IP address due to Twitch restrictions. This is the reason I can't host this bot and have to let people host it themselves.
+
+## Why is it called pagkibot?
+
+"pagkibot" is the filipino word for twitch.
