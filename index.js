@@ -538,23 +538,7 @@ function onMessage(msg){
                 icon_url: "https://cdn.discordapp.com/attachments/572429763700981780/572429816851202059/GlitchBadge_Purple_64px.png",
                 name: `Twitch Tracking`
             },
-            fields: [
-                {
-                    name: '⠀',
-                    value: '',
-                    inline: true
-                },
-                {
-                    name: '⠀',
-                    value: '',
-                    inline: true
-                },
-                {
-                    name: '⠀',
-                    value: '',
-                    inline: true
-                }
-            ]
+            fields: []
         };
         
         if(msg.channel.id in redirectChannels)
@@ -563,6 +547,14 @@ function onMessage(msg){
         let field_index = 0;
         
         tracked.forEach((user, index) => {
+            if(embed.fields.length < 3){
+                embed.fields.push({
+                    name: '⠀',
+                    value: '',
+                    inline: true
+                });
+            }
+            
             let username = user.username;
             
             if(user.channels[msg.channel.id].notifies.includes('@everyone'))
@@ -575,12 +567,6 @@ function onMessage(msg){
             if(field_index > 2) 
                 field_index = 0;
                         
-        });
-        
-        embed.fields.forEach((field, index) => {
-            if(!field.value)
-                embed.fields.splice(index, 1);
-            
         });
         
         if(config.debug)
