@@ -43,6 +43,9 @@ module.exports = {
         if(msg.channel.type == 'text' && !msg.member.hasPermission(command.perms))
             return false;
         
+        if(msg.channel.type != 'text' && !config.allowDM)
+            return false;
+        
         let msg_check = msg.content.toLowerCase().substr(config.prefix.length).trim();
         
         if(!Array.isArray(command.cmd))
