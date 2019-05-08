@@ -10,7 +10,7 @@ Tracked channels are updated every minute with updated titles, game names and vi
 
 - Node.js (Download from [here](https://nodejs.org/))
 - A Discord API application with the bot feature enabled (Create one [here](https://discordapp.com/developers/applications/))
-- A Twitch API application (Create one [here](https://dev.twitch.tv/console/apps/create))
+- A Twitch API application (Create one [here](https://dev.twitch.tv/console/apps/create), just put `http://localhost/` as Redirect URL)
 
 ## Installation
 
