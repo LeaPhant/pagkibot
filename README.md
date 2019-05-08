@@ -68,14 +68,23 @@ Press Ctrl+C to stop the bot again.
 - if there's no errors you should be greeted with an invite link. Use this to invite the bot to every server you want it in.
 - The next step is setting up an automated way of keeping this bot running 24/7 cause it would be pointless otherwise
 
+Windows (in cmd.exe/PowerShell with administrator rights):
+
 ```
-npm i -g pm2
+npm i -g pm2 pm2-windows-service
+pm2 start --name pagkibot index.js
+pm2 save
+pm2-service-install
+```
+
+Linux/Mac:
+
+```
+sudo npm i -g pm2
 pm2 start --name pagkibot index.js
 pm2 save
 pm2 startup
 ```
-
-(On Linux you might have to put `sudo` before the `npm`-command)
 
 - Now the bot should be up and running and also automatically start on boot.
 
