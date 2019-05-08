@@ -47,7 +47,7 @@ const krakenApi = axios.create({
 const client = new Discord.Client();
 
 client.once('ready', () => {
-    helper.log(`Invite bot to server: https://discordapp.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=0&scope=bot`);
+    helper.log(`Invite bot to server: https://discordapp.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=8&scope=bot`);
     
     let avatar_md5 = crypto.createHash('md5').update(fse.readFileSync(config.avatarPath)).digest("hex");
     
