@@ -691,6 +691,8 @@ function untrackTwitchUser(user_id, discord_id, type, channel){
         socket.ws.send(`{"type":"UNLISTEN","data":{"topics":["video-playback-by-id.${user_id}"]}}`);
         socket.ws.send(`{"type":"UNLISTEN","data":{"topics":["broadcast-settings-update.${user_id}"]}}`);
         
+        socket.topics -= 2;
+        
     }
     
     helper.saveJSON("trackedChannels", trackedChannels);
