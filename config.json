@@ -44,6 +44,12 @@
             "enabled": true,
             "cmd": ["twitch-everyone"],
             "perms": ["ADMINISTRATOR"]
+        },
+        
+        "pagkibot": {
+            "enabled": true,
+            "cmd": ["pagkibot"],
+            "perms": []
         }
     }
 }
