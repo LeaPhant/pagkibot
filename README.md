@@ -146,6 +146,12 @@ Get an overview of the tracked Twitch channels for the current Discord channel.
 
 **Example**: !twitch-tracking
 
+### !twitch-everyone \<username\>
+
+Toggle mentioning @everyone when a channel goes live. You can check which channels mention @everyone when they go live via !twitch-tracking.
+
+**Example**: !twitch-everyone puncayshun
+
 ## Limitations
 
 The current limit of the maximum amount of tracked channels is around ~250 per IP address due to Twitch restrictions. This is the reason I can't host this bot and have to let people host it themselves.
