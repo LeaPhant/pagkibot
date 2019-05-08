@@ -10,6 +10,10 @@ Tracked channels are updated every minute with updated titles, game names and vi
 
 Head over to the [Wiki](https://github.com/LeaPhant/pagkibot/wiki) to get help on installing this bot.
 
+## Commands
+
+You can find a list of commands [here](https://github.com/LeaPhant/pagkibot/wiki/4.-Commands).
+
 ## Limitations
 
 The current limit of the maximum amount of tracked channels is around ~250 per IP address due to Twitch restrictions. This is the reason I can't host this bot and have to let people host it themselves.
