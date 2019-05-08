@@ -18,6 +18,8 @@ let dataStore = helper.loadJSON('dataStore');
 const SOCKET_COUNT = 10;
 const MAX_TOPICS = 50;
 
+const TWITCH_API_DELAY = 5 * 60;
+
 let open_sockets = 0;
 let sockets = [];
 
@@ -632,10 +634,16 @@ function incomingPubSub(sub){
         
     }else if(topic.startsWith('broadcast-settings-update')){
         if(data.type == 'broadcast_settings_update'){
-            if(data.game !== null && data.status !== null){
+            if(data.game !== null){
                 channel.game = data.game;
-                channel.status = data.status;
+                channel.last_game_update = moment().unix();
                 
+            }
+                
+            if(data.status !== null){
+                channel.status = data.status;
+                channel.last_status_update = moment().unix();
+            
             }
             
             if(channel.game === null)
@@ -751,52 +759,64 @@ function updateTwitchChannel(channel){
     
 }
 
-setInterval(function(){
+function updateChannels(){
     sockets.forEach(socket => {
         socket.ws.send('{"type":"PING"}'); // keep sockets alive
         
     });
     
-    let request_form = '';
+    let liveChannels = [];
     
     for(id in trackedChannels){
-        if(trackedChannels[id].live){
-            if(request_form != '')
-                request_form += '&';
-            
-            request_form += `user_id=${id}`;
-            
-        }
+        if(trackedChannels[id].live)
+            liveChannels.push(trackedChannels[id].username);
         
     }
     
-    helixApi.get(`streams?${request_form}`).then(response => {
-        let data = response.data.data;
-                
-        if(data.length == 0){
-            msg.channel.send(`Twitch user \`${username}\` not found!`)
-            .catch(helper.discordErrorHandler);
-            
-            return false;
-            
-        }
+    let requests = [];
+    
+    for(let i = 0; i < liveChannels.length; i += 100){
+        requests.push(
+            krakenApi.get(`streams?limit=100&channel=${liveChannels.slice(i, i + 100).join(',')}`)
+        );
+    }
+    
+    Promise.all(requests).then(data => {
+        let twitchStreams = [];
         
-        let twitchStreams = data;
+        data.forEach(_data => {
+            twitchStreams = twitchStreams.concat(_data.data.streams);
+        });
                 
         for(id in trackedChannels){
             let channel = trackedChannels[id];
             
             if(channel.live){
-                if(moment().unix() - channel.start_date >= 300){
-                    let filter = twitchStreams.filter(a => a.user_id == id);
+                let filteredStreams = twitchStreams.filter(a => a.channel._id == id);
+                
+                if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
                     
-                    if(filter.length == 0){
+                    if(filteredStreams.length == 0){
                         channel.ending = true;
                         channel.end_date = moment().unix();
                         
                     }
                     
                 }
+                
+                if(filteredStreams.length > 0){
+                    let stream = filteredStreams[0];
+                    
+                    if(stream.game != channel.game 
+                    && (moment().unix() - channel.last_game_update >= TWITCH_API_DELAY || !channel.last_game_update))
+                        channel.game = stream.game;
+                    
+                    if(stream.channel.status != channel.status 
+                    && (moment().unix() - channel.last_status_update >= TWITCH_API_DELAY || !channel.last_status_update))
+                        channel.status = stream.channel.status;
+                    
+                }
+                
                 
                 helper.saveJSON('trackedChannels', trackedChannels);
                 
@@ -807,8 +827,9 @@ setInterval(function(){
         }
         
     }).catch(helper.error);
-    
-}, 60 * 1000);
+}
+
+setInterval(updateChannels, 60 * 1000);
 
 sockets.forEach((socket, index) => {
    socket.ws.on('message', data => {
@@ -839,7 +860,7 @@ sockets.forEach((socket, index) => {
             for(id in trackedChannels){
                 let channel = trackedChannels[id];
                 
-                if(Object.keys(channel.channels).length == null && !config.allowDM)
+                if(channel.channels.length == null && !config.allowDM)
                     return false;
                 
                 trackTwitchUser(id, channel);
