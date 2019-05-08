@@ -577,6 +577,30 @@ function onMessage(msg){
         
     }
     
+    if(helper.checkCommand(msg, config.commands.pagkibot)){
+        msg.channel.send({embed: {
+            description: "Discord bot for instant twitch live notifications using Twitch's PubSub API. Tracked channels are updated every minute with updated titles, game names and viewcounts.",
+            url: "https://discordapp.com",
+            color: 8635882,
+            footer: {
+                icon_url: "https://avatars1.githubusercontent.com/u/14080165?s=64",
+                text: "LeaPhant"
+            },
+            thumbnail: {
+                url: "https://raw.githubusercontent.com/LeaPhant/pagkibot/master/res/avatar.png"
+            },
+            author: {
+                name": pagkibot,
+                url: "https://discordapp.com",
+                icon_url: "https://cdn.discordapp.com/attachments/572429763700981780/572429816851202059/GlitchBadge_Purple_64px.png"
+            },
+            fields: [
+                {name: "GitHub Repo", "value": "https://github.com/LeaPhant/pagkibot"},
+                {name: "Commands", "value": "https://github.com/LeaPhant/pagkibot/wiki/4.-Commands"}
+            ]
+        }).catch(helper.discordErrorHandler);
+    }
+    
 }
 
 for(let i = 0; i < SOCKET_COUNT; i++){
