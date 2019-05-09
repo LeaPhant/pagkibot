@@ -11,7 +11,7 @@ const axios = require('axios');
 let avatarContent;
 
 if(fse.existsSync(config_old.avatarPath))
-    avatarContent = fse.readFileSync(avatarContent);
+    avatarContent = fse.readFileSync(config_old.avatarPath);
 
 const local_version = Number(pkg.version.replace(/\./g,''));
 
