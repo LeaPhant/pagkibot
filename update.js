@@ -1,5 +1,6 @@
 const pkg = require('./package.json');
 const config_old = require('./config.json');
+const credentials = require('./credentials.json');
 
 const repo = pkg.repository.url.split("+").pop();
 const fse = require('fs-extra');
@@ -29,6 +30,7 @@ axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.js
         
         nestedAssign(config_new, config, config_old);
         fse.writeFileSync('./config.json', JSON.stringify(config_new, false, 2));
+        fse.writeFileSync('./credentials.json', JSON.stringify(credentials, false, 2));
         
     }).catch(console.error);
     
