@@ -874,6 +874,10 @@ function updateChannels(){
                     channel.game = stream.game;
                     channel.status = stream.channel.status
                     
+                }else{
+                    channel.ending = true;
+                    channel.end_date = moment().unix();
+                    
                 }
                 
                 updateTwitchChannel(channel);
