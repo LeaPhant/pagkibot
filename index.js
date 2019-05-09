@@ -18,7 +18,7 @@ let dataStore = helper.loadJSON('dataStore');
 const SOCKET_COUNT = 10;
 const MAX_TOPICS = 50;
 
-const TWITCH_API_DELAY = 1 * 60;
+const TWITCH_API_DELAY = 3 * 60;
 
 let open_sockets = 0;
 let sockets = [];
@@ -874,7 +874,7 @@ function updateChannels(){
                     channel.game = stream.game;
                     channel.status = stream.channel.status
                     
-                }else{
+                }else if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
                     channel.ending = true;
                     channel.end_date = moment().unix();
                     
