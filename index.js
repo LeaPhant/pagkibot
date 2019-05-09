@@ -879,9 +879,7 @@ function updateChannels(){
                 channel.status = stream.channel.status;
                 channel.start_date = moment(stream.created_at).unix();
                 
-            }
-            
-            if(channel.live){
+            }else if(channel.live){
                 if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
                     channel.ending = true;
                     channel.end_date = moment().unix();
