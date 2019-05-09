@@ -10,6 +10,10 @@ Tracked channels are updated every minute with updated titles, game names and vi
 
 Head over to the [Wiki](https://github.com/LeaPhant/pagkibot/wiki) to get help on installing this bot.
 
+## Updating
+
+To update the bot, run `npm run update` in the bot folder.
+
 ## Commands
 
 You can find a list of commands [here](https://github.com/LeaPhant/pagkibot/wiki/4.-Commands).
