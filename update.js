@@ -8,6 +8,11 @@ const git = require('nodegit');
 const nestedAssign = require('nested-object-assign');
 const axios = require('axios');
 
+let avatarContent;
+
+if(fse.existsSync(config_old.avatarPath))
+    avatarContent = fse.readFileSync(avatarContent);
+
 const local_version = Number(pkg.version.replace(/\./g,''));
 
 axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.json').then(response => {
@@ -31,6 +36,9 @@ axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.js
         nestedAssign(config_new, config, config_old);
         fse.writeFileSync('./config.json', JSON.stringify(config_new, false, 2));
         fse.writeFileSync('./credentials.json', JSON.stringify(credentials, false, 2));
+        
+        if(avatarContent)
+            fse.outputFileSync(config_old.avatarPath, avatarContent);
         
     }).catch(console.error);
     
