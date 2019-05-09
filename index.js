@@ -54,6 +54,9 @@ client.once('ready', () => {
     if(dataStore.avatarSet == avatar_md5)
         return false;
     
+    if(!config.setAvatar)
+        return false;
+    
     if(config.debug)
         helper.log('avatar file has changed, updating');
     
