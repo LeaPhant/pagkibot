@@ -15,6 +15,7 @@ axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.js
     if(local_version >= version){
         console.log('Your version is already up-to-date!');
         process.exit(1);
+        
     }
     
     console.log('Downloading new version...');
