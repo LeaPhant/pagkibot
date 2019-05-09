@@ -18,7 +18,7 @@ let dataStore = helper.loadJSON('dataStore');
 const SOCKET_COUNT = 10;
 const MAX_TOPICS = 50;
 
-const TWITCH_API_DELAY = 5 * 60;
+const TWITCH_API_DELAY = 1 * 60;
 
 let open_sockets = 0;
 let sockets = [];
@@ -645,67 +645,30 @@ function incomingPubSub(sub){
             channel.live = true;
             channel.ending = false;
             
-            if(moment().unix() - channel.start_date < 600){
-                if(config.debug)
-                    helper.log('last stream shortly ago, edit message');
+            krakenApi.get(`channels/${channel.username}`).then(response => {
+                let data = response.data;
                 
-                updateTwitchChannel(channel);
+                channel.game = data.game;
+                channel.status = data.status;
                 
-            }else{
-                channel.peak_viewers = 0;
-                channel.viewers = 0;
-                channel.start_date = data.server_time;
-                
-                for(discord_channel_id in channel.channels){
-                    let discord_channel = client.channels.get(discord_channel_id);
-                    let _channel_id = discord_channel_id;
+                if(moment().unix() - channel.start_date < 600){
+                    if(config.debug)
+                        helper.log('last stream shortly ago, edit message');
                     
-                    if(_channel_id in redirectChannels)
-                        discord_channel = client.channels.get(redirectChannels[_channel_id]);
+                    updateTwitchChannel(channel);
                     
-                    let highlights = channel.channels[_channel_id].notifies.join(" ");
+                }else{
+                    channel.peak_viewers = 0;
+                    channel.viewers = 0;
+                    channel.start_date = data.server_time;
                     
-                    if(discord_channel){
-                        discord_channel
-                        .send(highlights,
-                            {embed: helper.formatTwitchEmbed(channel)})
-                        
-                        .then(_msg => {
-                            if(config.debug)
-                                helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
-                            
-                            channel.channels[_channel_id].msg_id = _msg.id;
-                            helper.saveJSON('trackedChannels', trackedChannels);
-                            
-                        }).catch(helper.discordErrorHandler);
-                        
-                    }
+                    postTwitchChannel(channel);
                     
                 }
                 
-                if(!config.allowDM)
-                    return false;
-            
-                for(discord_user_id in channel.dm_channels){
-                    let _user_id = discord_user_id;
-                    let discord_user = client.users.get(_user_id);
-                    
-                    if(discord_user){
-                        discord_user
-                        .send({embed: helper.formatTwitchEmbed(channel)})
-                        .then(_msg => {
-                            channel.dm_channels[_user_id].msg_id = _msg.id;
-                            helper.saveJSON('trackedChannels', trackedChannels);
-                            
-                        }).catch(helper.discordErrorHandler);
-                        
-                    }
-                    
-                }
+                helper.saveJSON('trackedChannels', trackedChannels);
                 
-            }
-            
-            helper.saveJSON('trackedChannels', trackedChannels);
+            }).catch(console.error);
             
         }else if(data.type == 'stream-down'){
             channel.ending = true;
@@ -720,30 +683,6 @@ function incomingPubSub(sub){
             
         }
         
-    }else if(topic.startsWith('broadcast-settings-update')){
-        if(data.type == 'broadcast_settings_update'){
-            if(data.game !== null){
-                channel.game = data.game;
-                channel.last_game_update = moment().unix();
-                
-            }
-                
-            if(data.status !== null){
-                channel.status = data.status;
-                channel.last_status_update = moment().unix();
-            
-            }
-            
-            if(channel.game === null)
-                channel.game = 'None';
-            
-            if(channel.status === null)
-                channel.status = channel.display_name;
-            
-            helper.saveJSON('trackedChannels', trackedChannels);
-            
-        }
-        
     }
     
 }
@@ -752,7 +691,7 @@ function trackTwitchUser(user_id, channel){
     for(let i = 0; i < SOCKET_COUNT; i++){
         let socket = sockets[i];
         
-        if(socket.topics > 47)
+        if(socket.topics > 48)
             continue;
         
         channel.socket = i;
@@ -760,11 +699,8 @@ function trackTwitchUser(user_id, channel){
         
         socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${user_id}"]}}`);
         // stream up, stream down, viewer count
-        
-        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.${user_id}"]}}`);
-        // title change, game change
          
-        socket.topics += 2;
+        socket.topics++;
         
         return true;
         
@@ -785,9 +721,8 @@ function untrackTwitchUser(user_id, discord_id, type, channel){
     if(Object.keys(trackedChannels[user_id].channels).length + Object.keys(trackedChannels[user_id].dm_channels).length == 0){
         delete trackedChannels[user_id];
         socket.ws.send(`{"type":"UNLISTEN","data":{"topics":["video-playback-by-id.${user_id}"]}}`);
-        socket.ws.send(`{"type":"UNLISTEN","data":{"topics":["broadcast-settings-update.${user_id}"]}}`);
         
-        socket.topics -= 2;
+        socket.topics--;
         
     }
     
@@ -847,26 +782,74 @@ function updateTwitchChannel(channel){
     
 }
 
+function postTwitchChannel(channel){
+    for(discord_channel_id in channel.channels){
+        let discord_channel = client.channels.get(discord_channel_id);
+        let _channel_id = discord_channel_id;
+        
+        if(_channel_id in redirectChannels)
+            discord_channel = client.channels.get(redirectChannels[_channel_id]);
+        
+        let highlights = channel.channels[_channel_id].notifies.join(" ");
+        
+        if(discord_channel){
+            discord_channel
+            .send(highlights,
+                {embed: helper.formatTwitchEmbed(channel)})
+            
+            .then(_msg => {
+                if(config.debug)
+                    helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
+                
+                channel.channels[_channel_id].msg_id = _msg.id;
+                helper.saveJSON('trackedChannels', trackedChannels);
+                
+            }).catch(helper.discordErrorHandler);
+            
+        }
+        
+    }
+
+    if(!config.allowDM)
+        return false;
+
+    for(discord_user_id in channel.dm_channels){
+        let _user_id = discord_user_id;
+        let discord_user = client.users.get(_user_id);
+        
+        if(discord_user){
+            discord_user
+            .send({embed: helper.formatTwitchEmbed(channel)})
+            .then(_msg => {
+                channel.dm_channels[_user_id].msg_id = _msg.id;
+                helper.saveJSON('trackedChannels', trackedChannels);
+                
+            }).catch(helper.discordErrorHandler);
+            
+        }
+        
+    }
+    
+}
+
 function updateChannels(){
     sockets.forEach(socket => {
         socket.ws.send('{"type":"PING"}'); // keep sockets alive
         
     });
     
-    let liveChannels = [];
+    let checkChannels = [];
     
-    for(id in trackedChannels){
-        if(trackedChannels[id].live)
-            liveChannels.push(trackedChannels[id].username);
-        
-    }
+    for(id in trackedChannels)
+        checkChannels.push(trackedChannels[id].username);
     
     let requests = [];
     
-    for(let i = 0; i < liveChannels.length; i += 100){
+    for(let i = 0; i < checkChannels.length; i += 100){
         requests.push(
-            krakenApi.get(`streams?limit=100&channel=${liveChannels.slice(i, i + 100).join(',')}`)
+            krakenApi.get(`streams?limit=100&channel=${checkChannels.slice(i, i + 100).join(',')}`)
         );
+        
     }
     
     Promise.all(requests).then(data => {
@@ -879,38 +862,46 @@ function updateChannels(){
         for(id in trackedChannels){
             let channel = trackedChannels[id];
             
+            let filteredStreams = twitchStreams.filter(a => a.channel._id == id);
+            let stream;
+            
+            if(filteredStreams.length > 0)
+                stream = filteredStreams[0];
+            
             if(channel.live){
-                let filteredStreams = twitchStreams.filter(a => a.channel._id == id);
                 
-                if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
+                if(stream){
+                    channel.game = stream.game;
+                    channel.status = stream.channel.status
                     
-                    if(filteredStreams.length == 0){
-                        channel.ending = true;
-                        channel.end_date = moment().unix();
+                }
+                
+                updateTwitchChannel(channel);
+                
+            }else{
+                if(stream){
+                    channel.live = true;
+                    channel.ending = false;
+                    channel.game = stream.game;
+                    channel.status = stream.channel.status
+                    channel.start_date = moment(stream.created_at).unix();
+                    
+                    if(moment().unix() - channel.start_date < 600){
+                        if(config.debug)
+                            helper.log('last stream shortly ago, edit message');
+                        
+                        updateTwitchChannel(channel);
+                        
+                    }else{
+                        postTwitchChannel(channel);
                         
                     }
                     
                 }
                 
-                if(filteredStreams.length > 0){
-                    let stream = filteredStreams[0];
-                    
-                    if(stream.game != channel.game 
-                    && (moment().unix() - channel.last_game_update >= TWITCH_API_DELAY || !channel.last_game_update))
-                        channel.game = stream.game;
-                    
-                    if(stream.channel.status != channel.status 
-                    && (moment().unix() - channel.last_status_update >= TWITCH_API_DELAY || !channel.last_status_update))
-                        channel.status = stream.channel.status;
-                    
-                }
-                
-                
-                helper.saveJSON('trackedChannels', trackedChannels);
-                
-                updateTwitchChannel(channel);
-                
             }
+            
+            helper.saveJSON('trackedChannels', trackedChannels);
             
         }
         
@@ -918,6 +909,7 @@ function updateChannels(){
 }
 
 setInterval(updateChannels, 60 * 1000);
+setTimeout(updateChannels, 4000);
 
 sockets.forEach((socket, index) => {
    socket.ws.on('message', data => {
@@ -930,13 +922,10 @@ sockets.forEach((socket, index) => {
             for(id in trackedChannels){
                 if(trackedChannels[id].socket == index){
                     socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${id}"]}}`);
-                    socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.${id}"]}}`);
                     
                 }
                 
             }
-            
-            socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`); 
             
             return false;
             
@@ -955,6 +944,9 @@ sockets.forEach((socket, index) => {
             }
             
         }
+        
+        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`); 
+        
         // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
         
         socket.topics++;
