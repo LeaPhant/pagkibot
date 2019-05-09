@@ -2,6 +2,7 @@
     "debug": true,
     "prefix": "!",
     "allowDM": true,
+    "setAvatar": true,
     "avatarPath": "./res/avatar.png",
     "commands": {
         "twitchTrack": {
