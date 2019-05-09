@@ -874,13 +874,15 @@ function updateChannels(){
             if(filteredStreams.length > 0)
                 stream = filteredStreams[0];
             
-            if(channel.live){
+            if(stream){
+                channel.game = stream.game;
+                channel.status = stream.channel.status;
+                channel.start_date = moment(stream.created_at).unix();
                 
-                if(stream){
-                    channel.game = stream.game;
-                    channel.status = stream.channel.status
-                    
-                }else if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
+            }
+            
+            if(channel.live){
+                if(moment().unix() - channel.start_date >= TWITCH_API_DELAY){
                     channel.ending = true;
                     channel.end_date = moment().unix();
                     
@@ -892,9 +894,6 @@ function updateChannels(){
                 if(stream){
                     channel.live = true;
                     channel.ending = false;
-                    channel.game = stream.game;
-                    channel.status = stream.channel.status
-                    channel.start_date = moment(stream.created_at).unix();
                     
                     if(moment().unix() - channel.start_date < 600){
                         if(config.debug)
