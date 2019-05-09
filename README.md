@@ -14,7 +14,7 @@ Head over to the [Wiki](https://github.com/LeaPhant/pagkibot/wiki) to get help o
 
 To update the bot, run `npm run update` in the bot folder.
 
-**Warning**: Currently this will delete all files in the bot folder, so store your custom avatar somewhere else if you don't want it to be deleted. The configuration file and the credentials are backed up of course.
+**Warning**: Currently this will delete all files in the bot folder. Only the avatar, configuration and credentials will be saved, any changes you make to the bot will be overwritten.
 
 ## Commands
 
