@@ -673,12 +673,15 @@ function incomingPubSub(sub){
                 
             }).catch(console.error);
             
-        }else if(data.type == 'stream-down'){
+        /*}else if(data.type == 'stream-down'){
             channel.ending = true;
             channel.end_date = data.server_time;
             updateTwitchChannel(channel);
             helper.saveJSON('trackedChannels', trackedChannels);
             
+        TODO: fix this
+        */
+        
         }else if(data.type == 'viewcount'){
             channel.viewers = data.viewers;
             if(channel.viewers > channel.peak_viewers) channel.peak_viewers = channel.viewers;
