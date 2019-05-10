@@ -13,6 +13,9 @@ let avatarContent;
 if(fse.existsSync(config_old.avatarPath))
     avatarContent = fse.readFileSync(config_old.avatarPath);
 
+if(fse.existsSync('./data'))
+    fse.moveSync('./data', '../pagkibot-data');
+
 const local_version = Number(pkg.version.replace(/\./g,''));
 
 axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.json').then(response => {
@@ -37,6 +40,9 @@ axios.get('https://raw.githubusercontent.com/LeaPhant/pagkibot/master/package.js
         fse.writeFileSync('./config.json', JSON.stringify(config_new, false, 2));
         fse.writeFileSync('./credentials.json', JSON.stringify(credentials, false, 2));
         
+        if(fse.existsSync('../pagkibot-data'))
+            fse.moveSync('../pagkibot-data', './data')
+
         if(avatarContent)
             fse.outputFileSync(config_old.avatarPath, avatarContent);
         
