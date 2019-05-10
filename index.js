@@ -46,6 +46,8 @@ const krakenApi = axios.create({
 
 const client = new Discord.Client();
 
+client.on('error', console.error);
+
 client.once('ready', () => {
     helper.log(`Invite bot to server: https://discordapp.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=8&scope=bot`);
     
