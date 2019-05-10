@@ -62,3 +62,9 @@ typings/
 
 # credentials
 credentials.json
+
+# tracking data folder
+data
+
+# package-lock.json caused problems in the past so I'll ignore it
+package-lock.json
