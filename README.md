@@ -16,7 +16,7 @@ To update the bot, run `npm run update` in the bot folder.
 
 **Warning**: Currently this will delete all files in the bot folder. Only the avatar, configuration and credentials will be saved, any changes you make to the bot will be overwritten.
 
-*The updater is also WIP and will be removed once I add proper default config logic so the bot can be just updated by pulling the repo*
+*The updater is also just a makeshift and will be removed once I add proper default config logic so the bot can be just updated by pulling the repo.*
 
 ## Commands
 
