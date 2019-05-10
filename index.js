@@ -279,7 +279,8 @@ function onMessage(msg){
             return false;
         
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchRedirect.cmd[0]} <discord channel mention>\``);
+            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchRedirect.cmd[0]} <discord channel mention>\``)
+            .catch(helper.discordErrorHandler);
             return false;
             
         }
@@ -529,7 +530,8 @@ function onMessage(msg){
         }
         
         if(tracked.length == 0){
-            msg.channel.send("This channel doesn't have any tracked channels yet!");
+            msg.channel.send("This channel doesn't have any tracked channels yet!")
+            .catch(helper.discordErrorHandler);
             return false;
             
         }
@@ -800,9 +802,7 @@ function postTwitchChannel(channel){
         
         if(discord_channel){
             discord_channel
-            .send(highlights,
-                {embed: helper.formatTwitchEmbed(channel)})
-            
+            .send(highlights, {embed: helper.formatTwitchEmbed(channel)})
             .then(_msg => {
                 if(config.debug)
                     helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
