@@ -1,6 +1,6 @@
 {
   "name": "pagkibot",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Discord bot for instant twitch live notifications",
   "main": "index.js",
   "scripts": {
