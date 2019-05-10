@@ -847,22 +847,26 @@ function updateChannels(){
     let checkChannels = [];
     
     for(id in trackedChannels)
-        checkChannels.push(trackedChannels[id].username);
+        checkChannels.push({id: id, username: trackedChannels[id].username});
     
-    let requests = [];
+    let stream_requests = [], user_requests = [];
     
     for(let i = 0; i < checkChannels.length; i += 100){
-        requests.push(
-            krakenApi.get(`streams?limit=100&channel=${checkChannels.slice(i, i + 100).join(',')}`)
+        stream_requests.push(
+            krakenApi.get(`streams?limit=100&channel=${checkChannels.slice(i, i + 100).map(a => a.username).join(',')}`)
+        );
+        
+        user_requests.push(
+            helixApi.get(`users?limit=100&id=${checkChannels.slice(i, i + 100).map(a => a.id).join('&id=')}`)
         );
         
     }
     
-    Promise.all(requests).then(data => {
+    Promise.all(stream_requests).then(results => {
         let twitchStreams = [];
         
-        data.forEach(_data => {
-            twitchStreams = twitchStreams.concat(_data.data.streams);
+        results.forEach(result => {
+            twitchStreams = twitchStreams.concat(result.data.streams);
         });
                 
         for(id in trackedChannels){
@@ -912,6 +916,24 @@ function updateChannels(){
             helper.saveJSON('trackedChannels', trackedChannels);
             
         }
+        
+    }).catch(helper.error);
+    
+    Promise.all(user_requests).then(results => {
+        let twitchUsers = [];
+        
+        results.forEach(result => {
+            twitchUsers = twitchUsers.concat(result.data.data);
+        });
+        
+        twitchUsers.forEach(twitchUser => {
+            let channel = trackedChannels[twitchUser.id];
+            channel.username = twitchUser.login;
+            channel.display_name = twitchUser.display_name;
+            
+        });
+        
+        helper.saveJSON('trackedChannels', trackedChannels);
         
     }).catch(helper.error);
 }
