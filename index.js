@@ -588,7 +588,7 @@ function onMessage(msg){
         msg.channel.send({embed: 
             {
                 description: "Discord bot for instant twitch live notifications using Twitch's PubSub API. Tracked channels are updated every minute with updated titles, game names and viewcounts.",
-                url: "https://discordapp.com",
+                url: "https://github.com/LeaPhant/pagkibot",
                 color: 8635882,
                 footer: {
                     icon_url: "https://avatars1.githubusercontent.com/u/14080165?s=64",
