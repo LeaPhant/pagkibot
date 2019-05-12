@@ -658,7 +658,7 @@ function incomingPubSub(sub){
                 channel.game = data.game;
                 channel.status = data.status;
                 
-                if(moment().unix() - channel.start_date < 600){
+                if(moment().unix() - channel.end_date < 600){
                     if(config.debug)
                         helper.log('last stream shortly ago, edit message');
                     
@@ -884,6 +884,7 @@ function updateChannels(){
                 channel.game = stream.game;
                 channel.status = stream.channel.status;
                 channel.start_date = moment(stream.created_at).unix();
+                channel.end_date = moment().unix();
             }
             
             if(channel.live){
