@@ -63,6 +63,9 @@ typings/
 # credentials
 credentials.json
 
+# configuration
+config.json
+
 # tracking data folder
 data
 

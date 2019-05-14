@@ -1,12 +1,13 @@
 {
   "name": "pagkibot",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "Discord bot for instant twitch live notifications",
   "main": "index.js",
   "scripts": {
+    "install": "node install.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "update": "node update.js && npm i && echo \"Successfully updated! If you followed the guide, restart the bot using 'pm2 restart pagkibot' now\" || cd ."
+    "update": "git pull && npm i && echo \"Successfully updated! If you followed the guide, restart the bot using 'pm2 restart pagkibot' now\" || cd ."
   },
   "repository": {
     "type": "git",
@@ -29,12 +30,15 @@
   "homepage": "https://github.com/LeaPhant/pagkibot#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "deep-for-each": "^3.0.0",
     "discord.js": "^11.4.2",
     "fs-extra": "^7.0.1",
+    "json-stable-stringify": "^1.0.1",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.2.2",
     "nested-object-assign": "^1.0.3",
     "nodegit": "^0.24.3",
+    "object-path": "^0.11.4",
     "ws": "^7.0.0"
   }
 }

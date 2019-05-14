@@ -1,12 +1,71 @@
-const config = require('./config.json');
+const config = {
+    debug: true,
+    prefix: "!",
+    allowDM: true,
+    setAvatar: true,
+    avatarPath: "./res/avatar.png",
+    commands: {
+        twitchTrack: {
+            enabled: true,
+            cmd: ["twitch-track"],
+            perms: ["ADMINISTRATOR"]
+        },
+        
+        twitchUntrack: {
+            enabled: true,
+            cmd: ["twitch-untrack"],
+            perms: ["ADMINISTRATOR"]
+        },
+        
+        twitchRedirect: {
+            enabled: true,
+            cmd: ["twitch-redirect"],
+            perms: ["ADMINISTRATOR"]
+        },
+        
+        twitchTracking: {
+            enabled: true,
+            cmd: ["twitch-tracking"],
+            perms: []
+        },
+        
+        twitchNotify: {
+            enabled: true,
+            cmd: ["twitch-notify"],
+            perms: []
+        },
+        
+        twitchUnnotify: {
+            enabled: true,
+            cmd: ["twitch-unnotify"],
+            perms: []
+        },
+        
+        twitchEveryone: {
+            enabled: true,
+            cmd: ["twitch-everyone"],
+            perms: ["ADMINISTRATOR"]
+        },
+        
+        pagkibot: {
+            enabled: true,
+            cmd: ["pagkibot"],
+            perms: []
+        }
+    }
+};
+
+let custom_config = {};
 
 const fse = require('fs-extra');
 const path = require('path');
-const moment = require('moment');
+const objectPath = require('object-path');
 
+const moment = require('moment');
 require("moment-duration-format");
 
 module.exports = {
+    default_config: config,
     log: (...params) => {
         console.log(`[${moment().toISOString()}]`, ...params);
         
@@ -15,6 +74,10 @@ module.exports = {
     error: (...params) => {
         console.error(`[${moment().toISOString()}]`, ...params);
         
+    },
+    
+    getOption: (...path) => {
+        return objectPath.get(custom_config, path) || objectPath.get(config, path);
     },
     
     saveJSON: (name, object) => {
@@ -37,16 +100,16 @@ module.exports = {
         if(!command.enabled)
             return false;
         
-        if(!msg.content.startsWith(config.prefix))
+        if(!msg.content.startsWith(module.exports.getOption('prefix')))
             return false;
         
         if(msg.channel.type == 'text' && !msg.member.hasPermission(command.perms))
             return false;
         
-        if(msg.channel.type != 'text' && !config.allowDM)
+        if(msg.channel.type != 'text' && !module.exports.getOption('allowDM'))
             return false;
         
-        let msg_check = msg.content.toLowerCase().substr(config.prefix.length).trim();
+        let msg_check = msg.content.toLowerCase().substr(module.exports.getOption('prefix').length).trim();
         
         if(!Array.isArray(command.cmd))
             command.cmd = [command.cmd];
@@ -91,9 +154,18 @@ module.exports = {
     },
     
     discordErrorHandler: err => {
-        if(config.debug)
+        if(module.exports.getOption('debug'))
             module.exports.error(err);
         else if('message' in err)
             module.exports.error(err.message);
+    }
+};
+
+if(fse.existsSync('./config.json')){
+    try{
+        custom_config = JSON.parse(fse.readFileSync('./config.json'), 'utf8');
+    }catch(e){
+        module.exports.error('malformatted config.json, exiting...');
+        process.exit(1);
     }
 }

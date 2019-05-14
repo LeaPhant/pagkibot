@@ -1,6 +1,7 @@
 const credentials = require('./credentials.json');
-const config = require('./config.json');
 const helper = require('./helper');
+
+const DEBUG = helper.getOption('debug');
 
 if(credentials.twitch.clientID.length == 0)
     throw "Please set a Twitch Client ID first. Check https://dev.twitch.tv/console/apps/create to register your application.";
@@ -51,23 +52,23 @@ client.on('error', helper.error);
 client.once('ready', () => {
     helper.log(`Invite bot to server: https://discordapp.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=8&scope=bot`);
     
-    let avatar_md5 = crypto.createHash('md5').update(fse.readFileSync(config.avatarPath)).digest("hex");
+    let avatar_md5 = crypto.createHash('md5').update(fse.readFileSync(helper.getOption('avatarPath'))).digest("hex");
     
     if(dataStore.avatarSet == avatar_md5)
         return false;
     
-    if(!config.setAvatar)
+    if(!helper.getOption('setAvatar'))
         return false;
     
-    if(config.debug)
+    if(DEBUG)
         helper.log('avatar file has changed, updating');
     
-    client.user.setAvatar(config.avatarPath)
+    client.user.setAvatar(helper.getOption('avatarPath'))
     .then(() => {
         dataStore.avatarSet = avatar_md5
         helper.saveJSON('dataStore', dataStore);
         
-        if(config.debug)
+        if(DEBUG)
             helper.log('avatar updated');
         
     }).catch(helper.discordErrorHandler);
@@ -81,7 +82,7 @@ client.login(credentials.discord.token);
 function onMessage(msg){
     let argv = msg.content.split(' ');
     
-    if(helper.checkCommand(msg, config.commands.twitchTrack)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchTrack'))){
         if(argv.length == 2){
             let username = argv[1];
             
@@ -123,7 +124,7 @@ function onMessage(msg){
                     
                 }
                 
-                if(msg.channel.type == 'dm' && config.allowDM){
+                if(msg.channel.type == 'dm' && helper.getOption('allowDM')){
                     if(!(msg.author.id in trackedChannels[id].dm_channels)){
                         trackedChannels[id].dm_channels[msg.author.id] = {};
                         helper.saveJSON('trackedChannels', trackedChannels);
@@ -184,7 +185,7 @@ function onMessage(msg){
                                 trackedChannels[id].dm_channels[msg.author.id].msg_id = _msg.id;
                                 
                             }else{
-                                if(config.debug)
+                                if(DEBUG)
                                     helper.log(`live message posted in ${msg.channel.id}, has msg_id ${_msg.id}`);
                                 
                                 trackedChannels[id].channels[msg.channel.id].msg_id = _msg.id;
@@ -204,15 +205,19 @@ function onMessage(msg){
             }).catch(helper.error);
             
         }else{
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchTrack.cmd[0]} <twitch username>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchTrack', 'cmd')[0]} <twitch username>\``
+            )
             .catch(helper.discordErrorHandler);
             
         }
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchUntrack)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchUntrack'))){
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchUntrack.cmd[0]} <twitch username>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchUntrack', 'cmd')[0]} <twitch username>\``
+            )
             .catch(helper.discordErrorHandler);
                 
             return false;
@@ -221,7 +226,7 @@ function onMessage(msg){
         
         let username = argv[1];
         
-        if(config.debug)
+        if(DEBUG)
             helper.log(`fetching ${username}`);
         
         helixApi.get(`users?login=${username}`).then(response => {
@@ -276,12 +281,14 @@ function onMessage(msg){
         
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchRedirect)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchRedirect'))){
         if(msg.channel.type != 'text')
             return false;
         
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchRedirect.cmd[0]} <discord channel mention>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchRedirect', 'cmd')[0]} <discord channel mention>\``
+            )
             .catch(helper.discordErrorHandler);
             return false;
             
@@ -292,7 +299,7 @@ function onMessage(msg){
             let output_channel = msg.guild.channels.get(channel_id);
             
             if(output_channel){
-                if(config.debug)
+                if(DEBUG)
                     helper.log(`setting redirect channel to ${channel_id}`);
                 
                 redirectChannels[msg.channel.id] = channel_id;
@@ -307,19 +314,21 @@ function onMessage(msg){
             }
             
         }catch(e){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchRedirect.cmd[0]} <discord channel mention>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchRedirect', 'cmd')[0]} <discord channel mention>\``
+            )
             .catch(helper.discordErrorHandler);
             
         }
         
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchNotify)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchNotify'))){
         if(msg.channel.type != 'text')
             return false;
         
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchNotify.cmd[0]} <twitch username>\``)
+            msg.channel.send(`usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchNotify', 'cmd')[0]} <twitch username>\``)
             .catch(helper.discordErrorHandler);
             
             return false;
@@ -328,7 +337,7 @@ function onMessage(msg){
         
         let username = argv[1];
         
-        if(config.debug)
+        if(DEBUG)
             helper.log('fetching', username);
         
         helixApi.get(`users?login=${username}`).then(response => {
@@ -380,12 +389,14 @@ function onMessage(msg){
         }).catch(helper.error);
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchUnnotify)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchUnnotify'))){
         if(msg.channel.type != 'text')
             return false;
         
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchUnnotify.cmd[0]} <twitch username>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchUnnotify', 'cmd')[0]} <twitch username>\``
+            )
             .catch(helper.discordErrorHandler);
             
             return false;
@@ -394,7 +405,7 @@ function onMessage(msg){
         
         let username = argv[1];
         
-        if(config.debug)
+        if(DEBUG)
             helper.log('fetching', username);
         
         helixApi.get(`users?login=${username}`).then(response => {
@@ -447,12 +458,14 @@ function onMessage(msg){
         
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchEveryone)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchEveryone'))){
         if(msg.channel.type != 'text')
             return false;
         
         if(argv.length != 2){
-            msg.channel.send(`usage: \`${config.prefix}${config.commands.twitchEveryone.cmd[0]} <twitch username>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchEveryone', 'cmd')[0]} <twitch username>\``
+            )
             .catch(helper.discordErrorHandler);
             
             return false;
@@ -461,7 +474,7 @@ function onMessage(msg){
         
         let username = argv[1];
         
-        if(config.debug)
+        if(DEBUG)
             helper.log('fetching', username);
         
         helixApi.get(`users?login=${username}`).then(response => {
@@ -515,11 +528,11 @@ function onMessage(msg){
         }).catch(helper.error);
     }
     
-    if(helper.checkCommand(msg, config.commands.twitchTracking)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchTracking'))){
         let tracked = [];
         
         for(id in trackedChannels){
-            if(msg.channel.type == 'dm' && config.allowDM){
+            if(msg.channel.type == 'dm' && helper.getOption('allowDM')){
                 if(msg.author.id in trackedChannels[id].dm_channels)
                     tracked.push(trackedChannels[id]);
                 
@@ -576,7 +589,7 @@ function onMessage(msg){
                         
         });
         
-        if(config.debug)
+        if(DEBUG)
             helper.log(embed);
         
         msg.channel.send({embed: embed})
@@ -584,7 +597,7 @@ function onMessage(msg){
         
     }
     
-    if(helper.checkCommand(msg, config.commands.pagkibot)){
+    if(helper.checkCommand(msg, helper.getOption('commands', 'pagkibot'))){
         msg.channel.send({embed: 
             {
                 description: "Discord bot for instant twitch live notifications using Twitch's PubSub API. Tracked channels are updated every minute with updated titles, game names and viewcounts.",
@@ -637,7 +650,7 @@ function incomingPubSub(sub){
     
     if(topic.startsWith('video-playback-by-id')){
         if(data.type == 'stream-up'){
-            if(config.debug)
+            if(DEBUG)
                 helper.log(`${channel.display_name} is now live!`);
             
             if(channel.live){
@@ -659,7 +672,7 @@ function incomingPubSub(sub){
                 channel.status = data.status;
                 
                 if(moment().unix() - channel.end_date < 600){
-                    if(config.debug)
+                    if(DEBUG)
                         helper.log('last stream shortly ago, edit message');
                     
                     updateTwitchChannel(channel);
@@ -806,7 +819,7 @@ function postTwitchChannel(channel){
             discord_channel
             .send(highlights, {embed: helper.formatTwitchEmbed(channel)})
             .then(_msg => {
-                if(config.debug)
+                if(DEBUG)
                     helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
                 
                 channel.channels[_channel_id].msg_id = _msg.id;
@@ -818,7 +831,7 @@ function postTwitchChannel(channel){
         
     }
 
-    if(!config.allowDM)
+    if(!helper.getOption('allowDM'))
         return false;
 
     for(discord_user_id in channel.dm_channels){
@@ -902,7 +915,7 @@ function updateChannels(){
                     channel.ending = false;
                     
                     if(moment().unix() - channel.start_date < 600){
-                        if(config.debug)
+                        if(DEBUG)
                             helper.log('last stream shortly ago, edit message');
                         
                         updateTwitchChannel(channel);
@@ -971,7 +984,7 @@ sockets.forEach((socket, index) => {
             for(id in trackedChannels){
                 let channel = trackedChannels[id];
                 
-                if(channel.channels.length == null && !config.allowDM)
+                if(channel.channels.length == null && !helper.getOption('allowDM'))
                     return false;
                 
                 trackTwitchUser(id, channel);
