@@ -933,6 +933,7 @@ function updateChannels(){
             let channel = trackedChannels[twitchUser.id];
             channel.username = twitchUser.login;
             channel.display_name = twitchUser.display_name;
+            channel.avatar = twitchUser.profile_image_url;
             
         });
         
