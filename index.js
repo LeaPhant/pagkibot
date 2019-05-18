@@ -553,7 +553,7 @@ function onMessage(msg){
         
         let embed = {
             color: 6570404,
-            description: 'List of tracked Twitch streams in this channel. Streams that mention everyone are marked with a star \*',
+            description: 'List of tracked Twitch streams in this channel.',
             author: {
                 icon_url: "https://cdn.discordapp.com/attachments/572429763700981780/572429816851202059/GlitchBadge_Purple_64px.png",
                 name: `Twitch Tracking`
@@ -566,6 +566,9 @@ function onMessage(msg){
         
         let field_index = 0;
         
+        if(msg.channel.type != 'dm')
+            embed.description += ' Streams that mention everyone are marked with a star \*, streams that mention you are written in **bold** text.';
+        
         tracked.forEach((user, index) => {
             if(embed.fields.length < 3){
                 embed.fields.push({
@@ -577,8 +580,14 @@ function onMessage(msg){
             
             let username = user.username;
             
-            if(user.channels[msg.channel.id].notifies.includes('@everyone'))
-                username += '\*';
+            if(msg.channel.type != 'dm'){
+                if(user.channels[msg.channel.id].notifies.includes(`<@${msg.author.id}>`))
+                    username = `**${username}**`;
+                
+                if(user.channels[msg.channel.id].notifies.includes('@everyone'))
+                    username += '\*';
+                
+            }
                 
             embed.fields[field_index].value += username + "\n";
             
