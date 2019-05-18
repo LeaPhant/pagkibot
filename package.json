@@ -37,7 +37,6 @@
     "moment": "^2.24.0",
     "moment-duration-format": "^2.2.2",
     "nested-object-assign": "^1.0.3",
-    "nodegit": "^0.24.3",
     "object-path": "^0.11.4",
     "ws": "^7.0.0"
   }
