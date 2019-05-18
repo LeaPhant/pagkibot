@@ -567,7 +567,7 @@ function onMessage(msg){
         let field_index = 0;
         
         if(msg.channel.type != 'dm')
-            embed.description += "\nStreams that mention everyone are marked with a star \*, streams that mention you are written in **bold** text.';
+            embed.description += `\nStreams that mention everyone are marked with a star \*, streams that mention you are written in **bold** text.`;
         
         tracked.forEach((user, index) => {
             if(embed.fields.length < 3){
