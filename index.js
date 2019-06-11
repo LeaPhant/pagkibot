@@ -518,6 +518,7 @@ function onMessage(msg){
                 
             }else{
                 channel.notifies.push('@everyone');
+                channel.notifies = channel.notifies.filter(a => a != '@here');
                 msg.channel.send(`Now mentioning everyone when \`${username}\` is streaming`)
                 .catch(helper.discordErrorHandler);
                 
@@ -526,6 +527,79 @@ function onMessage(msg){
             helper.saveJSON("trackedChannels", trackedChannels);
             
         }).catch(helper.error);
+        
+    }
+    
+    if(helper.checkCommand(msg, helper.getOption('commands', 'twitchHere'))){
+        if(msg.channel.type != 'text')
+            return false;
+        
+        if(argv.length != 2){
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchHere', 'cmd')[0]} <twitch username>\``
+            )
+            .catch(helper.discordErrorHandler);
+            
+            return false;
+            
+        }
+        
+        let username = argv[1];
+        
+        if(DEBUG)
+            helper.log('fetching', username);
+        
+        helixApi.get(`users?login=${username}`).then(response => {
+            let data = response.data.data;
+                
+            if(data.length == 0){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+                
+                return false;
+                
+            }
+            
+            let twitchUser = data[0];
+            let id = twitchUser.id;
+            
+            if(!(id in trackedChannels)){
+                msg.channel.send(`\`${username}\` is not being tracked!`)
+                .catch(helper.discordErrorHandler);
+                
+                return false;
+                
+            }
+            
+            if(!(msg.channel.id in trackedChannels[id].channels)){
+                msg.channel.send(`\`${username}\` is not being tracked!`)
+                .catch(helper.discordErrorHandler);
+                
+                return false;
+                
+            }
+            
+            let channel = trackedChannels[id].channels[msg.channel.id];
+            
+            let hereMentioned = channel.notifies.includes('@here');
+            
+            if(hereMentioned){
+                channel.notifies = channel.notifies.filter(a => a != '@here');
+                msg.channel.send(`Stopped mentioning everyone currently here when \`${username}\` is streaming`)
+                .catch(helper.discordErrorHandler);
+                
+            }else{
+                channel.notifies.push('@here');
+                channel.notifies = channel.notifies.filter(a => a != '@everyone');
+                msg.channel.send(`Now mentioning everyone currently here when \`${username}\` is streaming`)
+                .catch(helper.discordErrorHandler);
+                
+            }
+            
+            helper.saveJSON("trackedChannels", trackedChannels);
+            
+        }).catch(helper.error);
+        
     }
     
     if(helper.checkCommand(msg, helper.getOption('commands', 'twitchTracking'))){
@@ -567,7 +641,7 @@ function onMessage(msg){
         let field_index = 0;
         
         if(msg.channel.type != 'dm')
-            embed.description += `\nStreams that mention everyone are marked with a star \*, streams that mention you are written in **bold** text.`;
+            embed.description += `\nStreams that mention everyone are marked with a star \*, if they only mention people currently here they're marked with two stars \*\*. Streams that mention you are written in **bold** text.`;
         
         tracked.forEach((user, index) => {
             if(embed.fields.length < 3){
@@ -586,6 +660,9 @@ function onMessage(msg){
                 
                 if(user.channels[msg.channel.id].notifies.includes('@everyone'))
                     username += '\*';
+                
+                if(user.channels[msg.channel.id].notifies.includes('@here'))
+                    username += '\*\*';
                 
             }
                 

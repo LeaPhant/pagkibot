@@ -47,6 +47,12 @@ const config = {
             perms: ["ADMINISTRATOR"]
         },
         
+        twitchHere: {
+            enabled: true,
+            cmd: ["twitch-here"],
+            perms: ["ADMINISTRATOR"]
+        },
+        
         pagkibot: {
             enabled: true,
             cmd: ["pagkibot"],
