@@ -71,3 +71,6 @@ data
 
 # package-lock.json caused problems in the past so I'll ignore it
 package-lock.json
+
+# Kate editor temporary files
+*.kate*
