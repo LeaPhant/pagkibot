@@ -463,7 +463,9 @@ function onMessage(msg){
             return false;
 
         if(argv.length != 3){
-            msg.channel.send(`usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchNotifyRole', 'cmd')[0]} <twitch username> <role name (case sensitive)>\``)
+            msg.channel.send(
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchNotifyRole', 'cmd')[0]} <twitch username> <role name>\`
+            `)
             .catch(helper.discordErrorHandler);
 
             return false;
