@@ -508,17 +508,17 @@ function onMessage(msg){
 
             let channel = trackedChannels[id].channels[msg.channel.id];
 
-            let roles = msg.guild.roles.find('name', rolename);
+            let roles = msg.guild.roles.filter(role => role.name.toLowerCase() == rolename.toLowerCase());
 
-            if(!roles){
-                msg.channel.send(`\`${rolename}\ role not found (role names are case sensitive!)`)
+            if(roles.length == 0){
+                msg.channel.send(`\`${rolename}\` role not found!`)
                 .catch(helper.discordErrorHandler);
 
                 return false;
 
             }
 
-            let role = roles[0];
+            let role = roles.first();
 
             if(channel.notifies.includes(`<@&${role.id}>`)){
                 msg.channel.send(`This role is already being notified when \`${username}\` is streaming!`)
@@ -531,7 +531,7 @@ function onMessage(msg){
             channel.notifies.push(`<@&${role.id}>`);
             helper.saveJSON("trackedChannels", trackedChannels);
 
-            msg.channel.send(`This role is now being notified when \`${username}\` is streaming`)
+            msg.channel.send(`This role is now being notified when \`${username}\` is streaming!`)
             .catch(helper.discordErrorHandler);
 
         }).catch(helper.error);
@@ -543,7 +543,7 @@ function onMessage(msg){
 
         if(argv.length != 3){
             msg.channel.send(
-                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchUnnotifyRole', 'cmd')[0]} <twitch username> <role name (case sensitive)>\``
+                `usage: \`${helper.getOption('prefix')}${helper.getOption('commands', 'twitchUnnotifyRole', 'cmd')[0]} <twitch username> <role name>\``
             )
             .catch(helper.discordErrorHandler);
 
@@ -589,17 +589,17 @@ function onMessage(msg){
 
             let channel = trackedChannels[id].channels[msg.channel.id];
 
-            let roles = msg.guild.roles.find('name', rolename);
+            let roles = msg.guild.roles.filter(role => role.name.toLowerCase() == rolename.toLowerCase());
 
-            if(!roles){
-                msg.channel.send(`\`${rolename}\ role not found (role names are case sensitive!)`)
+            if(roles.length == 0){
+                msg.channel.send(`\`${rolename}\ role not found!`)
                 .catch(helper.discordErrorHandler);
 
                 return false;
 
             }
 
-            let role = roles[0];
+            let role = roles.first();
 
             if(!(channel.notifies.includes(`<@&${role.id}>`))){
                 msg.channel.send(`This role is not being notified when \`${username}\` is streaming!`)
@@ -1014,7 +1014,7 @@ function updateTwitchChannel(channel){
             discord_channel = client.channels.get(redirectChannels[discord_channel_id]);
 
         if(discord_channel && channel.channels[discord_channel_id].msg_id){
-            let highlights = ""
+            let highlights = "";
 
             if(channel.live)
                 highlights = channel.channels[discord_channel_id].notifies.join(" ");
@@ -1054,7 +1054,7 @@ function updateTwitchChannel(channel){
 
 function postLiveMessage(channel, discord_channel, message, embed, cb){
   discord_channel
-  .send(highlights, {embed: helper.formatTwitchEmbed(channel)})
+  .send(message, {embed: helper.formatTwitchEmbed(channel)})
   .then(_msg => {
       if(DEBUG)
           helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
@@ -1090,7 +1090,7 @@ function postTwitchChannel(channel){
 
                 roles.forEach(role_mention => {
                     let role_id = role_mention.substr(3);
-                    role_id = Number(role.substr(0, role_id.length - 1));
+                    role_id = Number(role_id.substr(0, role_id.length - 1));
                     let role = discord_channel.guild.roles.get(role_id);
                     if(role && !role.mentionable){
                         promises.push(role.setMentionable(true));
