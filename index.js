@@ -1054,14 +1054,14 @@ function updateTwitchChannel(channel){
 
 }
 
-function postLiveMessage(channel, discord_channel, message, embed, cb){
+function postLiveMessage(channel, discord_channel, channel_id, message, embed, cb){
   discord_channel
   .send(message, {embed: helper.formatTwitchEmbed(channel)})
   .then(_msg => {
       if(DEBUG)
-          helper.log(`live message posted in ${_channel_id}, has msg_id ${_msg.id}`);
+          helper.log(`live message posted in ${channel_id}, has msg_id ${_msg.id}`);
 
-      channel.channels[_channel_id].msg_id = _msg.id;
+      channel.channels[channel_id].msg_id = _msg.id;
       helper.saveJSON('trackedChannels', trackedChannels);
 
       if(typeof cb === 'function') cb();
@@ -1102,7 +1102,7 @@ function postTwitchChannel(channel){
                 });
 
                 Promise.all(promises).then(() => {
-                      postLiveMessage(channel, discord_channel, highlights, helper.formatTwitchEmbed, () => {
+                      postLiveMessage(channel, discord_channel, _channel_id, highlights, helper.formatTwitchEmbed, () => {
                         unmention_roles.forEach(role => {
                             role.setMentionable(false);
 
@@ -1112,7 +1112,7 @@ function postTwitchChannel(channel){
                 });
 
             }else{
-                postLiveMessage(channel, discord_channel, highlights, helper.formatTwitchEmbed);
+                postLiveMessage(channel, discord_channel, _channel_id, highlights, helper.formatTwitchEmbed);
             }
         }
     }
