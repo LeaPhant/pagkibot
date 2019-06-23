@@ -120,8 +120,11 @@ module.exports = {
 
         if(!msg.content.startsWith(module.exports.getOption('prefix')))
             return false;
-
-        if(msg.channel.type == 'text' && !msg.member.hasPermission(command.perms))
+        
+        let hasPermission = 
+            command.perms.length == 0 || command.perms.some(perm => msg.member.hasPermission(perm));
+        
+        if(!hasPermission)
             return false;
 
         if(msg.channel.type != 'text' && !module.exports.getOption('allowDM'))
