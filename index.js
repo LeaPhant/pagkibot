@@ -1152,7 +1152,7 @@ function updateChannels(){
     let checkChannels = [];
 
     for(id in trackedChannels)
-        checkChannels.push(id);
+        checkChannels.push({id: id, username: trackedChannels[id].username});
 
     let stream_requests = [], user_requests = [];
 
@@ -1161,7 +1161,7 @@ function updateChannels(){
             krakenApi.get('streams', {
                 params: {
                     limit: 100,
-                    channel: checkChannels.slice(i, i + 100).join(',')
+                    channel: checkChannels.slice(i, i + 100).map(a => a.id).join(',')
               }
             })
         );
@@ -1169,7 +1169,7 @@ function updateChannels(){
         let params = new URLSearchParams();
         params.append('limit', 100);
 
-        checkChannels.slice(i, i + 100).forEach(channel => {
+        checkChannels.slice(i, i + 100).map(a => a.id).forEach(channel => {
             params.append('id', channel);
         });
 
