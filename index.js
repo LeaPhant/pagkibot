@@ -1171,7 +1171,7 @@ function updateChannels(){
         });
 
         user_requests.push(
-            helixApi.get('users', { params })
+            helixApi.get(`users?${params.toString()}`)
         );
 
     }
