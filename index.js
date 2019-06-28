@@ -27,6 +27,7 @@ let sockets = [];
 const fse = require('fs-extra');
 const crypto = require('crypto');
 const axios = require('axios');
+const { URLSearchParams } = require('url');
 const WebSocket = require('ws');
 const Discord = require('discord.js');
 const moment = require('moment');
@@ -86,7 +87,7 @@ function onMessage(msg){
         if(argv.length == 2){
             let username = argv[1];
 
-            helixApi.get(`users?login=${username}`).then(response => {
+            helixApi.get('users', { params: { login: username } }).then(response => {
                 let data = response.data.data;
 
                 if(data.length == 0){
@@ -229,7 +230,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log(`fetching ${username}`);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -340,7 +341,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -408,7 +409,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -478,7 +479,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -559,7 +560,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -640,7 +641,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -712,7 +713,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get(`users?login=${username}`).then(response => {
+        helixApi.get('users', { params: { login: username } }).then(response => {
             let data = response.data.data;
 
             if(data.length == 0){
@@ -1154,11 +1155,23 @@ function updateChannels(){
 
     for(let i = 0; i < checkChannels.length; i += 100){
         stream_requests.push(
-            krakenApi.get(`streams?limit=100&channel=${checkChannels.slice(i, i + 100).map(a => a.username).join(',')}`)
+            krakenApi.get('streams', {
+                params: {
+                    limit: 100,
+                    channel: checkChannels.slice(i, i + 100).map(a => a.username).join(',')
+              }
+            })
         );
 
+        let params = new URLSearchParams();
+        params.append('limit', 100);
+
+        checkChannels.slice(i, i + 100).map(a => a.id).forEach(channel => {
+            params.append('id', channel);
+        });
+
         user_requests.push(
-            helixApi.get(`users?limit=100&id=${checkChannels.slice(i, i + 100).map(a => a.id).join('&id=')}`)
+            helixApi.get('users', { params })
         );
 
     }
