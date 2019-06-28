@@ -42,7 +42,10 @@ const helixApi = axios.create({
 
 const krakenApi = axios.create({
     baseURL: 'https://api.twitch.tv/kraken/',
-    headers: { 'Client-ID': credentials.twitch.clientID }
+    headers: {
+        'Client-ID': credentials.twitch.clientID,
+        'Accept': 'application/vnd.twitchtv.v5+json'
+    }
 
 });
 
@@ -158,8 +161,8 @@ function onMessage(msg){
                 }
 
                 let requests = [
-                    krakenApi.get(`channels/${username}`),
-                    krakenApi.get(`streams/${username}`)
+                    krakenApi.get(`channels/${id}`),
+                    krakenApi.get(`streams/${id}`)
                 ];
 
                 Promise.all(requests).then(data => {
@@ -915,7 +918,7 @@ function incomingPubSub(sub){
             channel.live = true;
             channel.ending = false;
 
-            krakenApi.get(`channels/${channel.username}`).then(response => {
+            krakenApi.get(`channels/${channel_id}`).then(response => {
                 let data = response.data;
 
                 channel.game = data.game;
@@ -1158,7 +1161,7 @@ function updateChannels(){
             krakenApi.get('streams', {
                 params: {
                     limit: 100,
-                    channel: checkChannels.slice(i, i + 100).map(a => a.username).join(',')
+                    channel: checkChannels.slice(i, i + 100).map(a => a.id).join(',')
               }
             })
         );
