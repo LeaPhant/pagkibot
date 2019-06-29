@@ -84,7 +84,8 @@ client.on('message', onMessage);
 client.login(credentials.discord.token);
 
 function reconnectSocket(socket, index){
-    helper.log('reconnecting');
+    if(DEBUG)
+        helper.log('reconnecting socket', index);
 
     socket.reopen = true;
     socket.ws.terminate();
@@ -101,6 +102,11 @@ function bindSocketHandlers(socket, index){
 
     socket.ws.on('open', () => {
         socket.ws.send('{"type":"PING"}');
+
+        // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
+
+        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
+        socket.topics++;
 
         if(socket.reopen){
             for(id in trackedChannels){
@@ -129,12 +135,6 @@ function bindSocketHandlers(socket, index){
             }
 
         }
-
-        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
-
-        // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
-
-        socket.topics++;
 
     });
 
@@ -1216,7 +1216,9 @@ function updateChannels(){
 
         if(moment().unix() - socket.last_pong > 90)
             reconnectSocket(socket, index);
+
     });
+    
     let checkChannels = Object.keys(trackedChannels);
 
     let stream_requests = [], user_requests = [];
