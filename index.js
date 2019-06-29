@@ -184,7 +184,7 @@ function onMessage(msg){
                         if(msg.channel.id in redirectChannels)
                             channel = client.channels.get(redirectChannels[msg.channel.id]);
 
-                        channel.send({embed: helper.formatTwitchEmbed(trackedChannels[id])}).then(_msg => {
+                        channel.send(`${trackedChannels[id].display_name} is now live!`, {embed: helper.formatTwitchEmbed(trackedChannels[id])}).then(_msg => {
                             if(msg.channel.type == 'dm'){
                                 trackedChannels[id].dm_channels[msg.author.id].msg_id = _msg.id;
 
@@ -1086,7 +1086,7 @@ function postTwitchChannel(channel){
             discord_channel = client.channels.get(redirectChannels[_channel_id]);
 
         if(discord_channel){
-            let highlights = channel.channels[_channel_id].notifies.join(" ");
+            let highlights = `${channel.display_name} is now live! ${channel.channels[_channel_id].notifies.join(" ")}`;
 
             let roles = channel.channels[_channel_id].notifies.filter(a => a.startsWith("<@&"));
 
