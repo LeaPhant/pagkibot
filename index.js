@@ -49,7 +49,7 @@ const krakenApi = axios.create({
 
 });
 
-const client = new Discord.Client();
+const client = new Discord.Client({ autoReconnect: true });
 
 client.on('error', helper.error);
 
