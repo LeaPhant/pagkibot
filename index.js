@@ -83,9 +83,23 @@ client.on('message', onMessage);
 
 client.login(credentials.discord.token);
 
-function bindSocketHandlers(socket){
+function reconnectSocket(socket, index){
+    socket.reopen = true;
+    socket.ws.terminate();
+
+    setTimeout(() => {
+        socket.ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
+        bindSocketHandlers(socket, index);
+
+        if(socket.timeout < 8)
+            socket.timeout++;
+
+    }, 2 ** socket.timeout);
+}
+
+function bindSocketHandlers(socket, index){
     socket.ws.on('message', data => {
-        incomingPubSub(data);
+        incomingPubSub(data, socket);
 
     });
 
@@ -126,12 +140,15 @@ function bindSocketHandlers(socket){
 
     });
 
-    socket.ws.on('close', () => {
-        socket.reopen = true;
-        socket.ws.terminate();
-        socket.ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
-        bindSocketHandlers(socket);
+    socket.ws.on('error', () => {
+        reconnectSocket(socket, index);
+    });
 
+    socket.ws.on('close', code => {
+        if(code != 1000)
+            return false;
+
+        reconnectSocket(socket);
     });
 }
 
@@ -933,18 +950,22 @@ function onMessage(msg){
 for(let i = 0; i < SOCKET_COUNT; i++){
     let socket = {
         topics: 0,
-        ws: new WebSocket('wss://pubsub-edge.twitch.tv/v1')
+        ws: new WebSocket('wss://pubsub-edge.twitch.tv/v1'),
+        timeout: 1
 
     }
 
-    bindSocketHandlers(socket);
+    bindSocketHandlers(socket, i);
 
     sockets.push(socket);
 
 }
 
-function incomingPubSub(sub){
+function incomingPubSub(sub, socket){
     let msg = JSON.parse(sub);
+
+    if(msg.type == 'PONG')
+        socket.last_pong = moment().unix();
 
     if(msg.type != 'MESSAGE')
         return false;
@@ -1199,8 +1220,11 @@ function postTwitchChannel(channel){
 
 function updateChannels(){
     sockets.forEach(socket => {
-        socket.ws.send('{"type":"PING"}'); // keep sockets alive
+        if(socket.ws.readyState == 1)
+            socket.ws.send('{"type":"PING"}'); // keep sockets alive
 
+        if(moment().unix() - socket.last_pong > 90)
+            reconnectSocket(socket);
     });
     let checkChannels = Object.keys(trackedChannels);
 
