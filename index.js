@@ -83,6 +83,58 @@ client.on('message', onMessage);
 
 client.login(credentials.discord.token);
 
+function bindSocketHandlers(socket){
+    socket.ws.on('message', data => {
+        incomingPubSub(data);
+
+    });
+
+    socket.ws.on('open', () => {
+         if(socket.reopen){
+             for(id in trackedChannels){
+                 if(trackedChannels[id].socket == index){
+                     socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${id}"]}}`);
+
+                 }
+
+             }
+
+             return false;
+
+         }else{
+             open_sockets++;
+
+             if(open_sockets == SOCKET_COUNT){ // all sockets opened, start subscribing to events
+                 for(id in trackedChannels){
+                     let channel = trackedChannels[id];
+
+                     if(channel.channels.length == null && !helper.getOption('allowDM'))
+                         return false;
+
+                     trackTwitchUser(id, channel);
+                 }
+
+             }
+
+         }
+
+         socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
+
+         // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
+
+         socket.topics++;
+
+    });
+
+    socket.ws.on('close', () => {
+        socket.reopen = true;
+        socket.ws.terminate();
+        socket.ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
+        bindSocketHandlers(socket);
+
+    });
+}
+
 function onMessage(msg){
     let argv = msg.content.split(' ');
 
@@ -885,6 +937,8 @@ for(let i = 0; i < SOCKET_COUNT; i++){
 
     }
 
+    bindSocketHandlers(socket);
+
     sockets.push(socket);
 
 }
@@ -1255,53 +1309,3 @@ function updateChannels(){
 
 setInterval(updateChannels, 60 * 1000);
 setTimeout(updateChannels, 4000);
-
-sockets.forEach((socket, index) => {
-   socket.ws.on('message', data => {
-       incomingPubSub(data);
-
-   });
-
-   socket.ws.on('open', () => {
-        if(socket.reopen){
-            for(id in trackedChannels){
-                if(trackedChannels[id].socket == index){
-                    socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${id}"]}}`);
-
-                }
-
-            }
-
-            return false;
-
-        }
-
-        open_sockets++;
-
-        if(open_sockets == SOCKET_COUNT){ // all sockets opened, start subscribing to events
-            for(id in trackedChannels){
-                let channel = trackedChannels[id];
-
-                if(channel.channels.length == null && !helper.getOption('allowDM'))
-                    return false;
-
-                trackTwitchUser(id, channel);
-            }
-
-        }
-
-        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
-
-        // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
-
-        socket.topics++;
-
-   });
-
-   socket.ws.on('close', () => {
-       sockets[index].reopen = true;
-       sockets[index].ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
-
-   });
-
-});
