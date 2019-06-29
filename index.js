@@ -84,17 +84,13 @@ client.on('message', onMessage);
 client.login(credentials.discord.token);
 
 function reconnectSocket(socket, index){
+    helper.log('reconnecting');
+
     socket.reopen = true;
     socket.ws.terminate();
 
-    setTimeout(() => {
-        socket.ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
-        bindSocketHandlers(socket, index);
-
-        if(socket.timeout < 8)
-            socket.timeout++;
-
-    }, 2 ** socket.timeout);
+    socket.ws = new WebSocket('wss://pubsub-edge.twitch.tv/v1');
+    bindSocketHandlers(socket, index);
 }
 
 function bindSocketHandlers(socket, index){
@@ -104,51 +100,46 @@ function bindSocketHandlers(socket, index){
     });
 
     socket.ws.on('open', () => {
-         if(socket.reopen){
-             for(id in trackedChannels){
-                 if(trackedChannels[id].socket == index){
-                     socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${id}"]}}`);
+        socket.ws.send('{"type":"PING"}');
 
-                 }
+        if(socket.reopen){
+            for(id in trackedChannels){
+                if(trackedChannels[id].socket == index){
+                    socket.ws.send(`{"type":"LISTEN","data":{"topics":["video-playback-by-id.${id}"]}}`);
 
-             }
+                }
 
-             return false;
+            }
 
-         }else{
-             open_sockets++;
-
-             if(open_sockets == SOCKET_COUNT){ // all sockets opened, start subscribing to events
-                 for(id in trackedChannels){
-                     let channel = trackedChannels[id];
-
-                     if(channel.channels.length == null && !helper.getOption('allowDM'))
-                         return false;
-
-                     trackTwitchUser(id, channel);
-                 }
-
-             }
-
-         }
-
-         socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
-
-         // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
-
-         socket.topics++;
-
-    });
-
-    socket.ws.on('error', () => {
-        reconnectSocket(socket, index);
-    });
-
-    socket.ws.on('close', code => {
-        if(code != 1000)
             return false;
 
-        reconnectSocket(socket);
+        }else{
+            open_sockets++;
+
+            if(open_sockets == SOCKET_COUNT){ // all sockets opened, start subscribing to events
+                for(id in trackedChannels){
+                    let channel = trackedChannels[id];
+
+                    if(channel.channels.length == null && !helper.getOption('allowDM'))
+                        return false;
+
+                    trackTwitchUser(id, channel);
+                }
+
+            }
+
+        }
+
+        socket.ws.send(`{"type":"LISTEN","data":{"topics":["broadcast-settings-update.0"]}}`);
+
+        // subscribe to topic that doesn't exist to prevent socket connection being closed by twitch
+
+        socket.topics++;
+
+    });
+
+    socket.ws.on('error', err => {
+        //helper.error(err);
     });
 }
 
@@ -951,7 +942,7 @@ for(let i = 0; i < SOCKET_COUNT; i++){
     let socket = {
         topics: 0,
         ws: new WebSocket('wss://pubsub-edge.twitch.tv/v1'),
-        timeout: 1
+        last_pong: moment().unix()
 
     }
 
@@ -1219,12 +1210,12 @@ function postTwitchChannel(channel){
 }
 
 function updateChannels(){
-    sockets.forEach(socket => {
+    sockets.forEach((socket, index) => {
         if(socket.ws.readyState == 1)
             socket.ws.send('{"type":"PING"}'); // keep sockets alive
 
         if(moment().unix() - socket.last_pong > 90)
-            reconnectSocket(socket);
+            reconnectSocket(socket, index);
     });
     let checkChannels = Object.keys(trackedChannels);
 
@@ -1290,7 +1281,7 @@ function updateChannels(){
                     channel.live = true;
                     channel.ending = false;
 
-                    if(moment().unix() - channel.start_date < 600){
+                    if(moment().unix() - channel.end_date < 600){
                         if(DEBUG)
                             helper.log('last stream shortly ago, edit message');
 
