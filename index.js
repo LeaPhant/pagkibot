@@ -990,20 +990,20 @@ function incomingPubSub(sub, socket){
                 channel.game = data.game;
                 channel.status = data.status;
 
-                if(moment().unix() - channel.end_date < 600){
+                /*if(moment().unix() - channel.end_date < 600){
                     if(DEBUG)
                         helper.log('last stream shortly ago, edit message');
 
                     updateTwitchChannel(channel);
 
-                }else{
+                }else{*/
                     channel.peak_viewers = 0;
                     channel.viewers = 0;
                     channel.start_date = data.server_time;
 
                     postTwitchChannel(channel);
 
-                }
+                //}
 
                 helper.saveJSON('trackedChannels', trackedChannels);
 
@@ -1218,7 +1218,7 @@ function updateChannels(){
             reconnectSocket(socket, index);
 
     });
-    
+
     let checkChannels = Object.keys(trackedChannels);
 
     let stream_requests = [], user_requests = [];
@@ -1283,16 +1283,16 @@ function updateChannels(){
                     channel.live = true;
                     channel.ending = false;
 
-                    if(moment().unix() - channel.end_date < 600){
+                    /*if(moment().unix() - channel.end_date < 600){
                         if(DEBUG)
                             helper.log('last stream shortly ago, edit message');
 
                         updateTwitchChannel(channel);
 
-                    }else{
+                    }else{*/
                         postTwitchChannel(channel);
 
-                    }
+                    //}
 
                 }
 
