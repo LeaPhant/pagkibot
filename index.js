@@ -142,6 +142,13 @@ function onMessage(msg){
             let username = argv[1];
 
             apiClient.helix.users.getUserByName(username).then(twitchUser => {
+                if(twitchUser === null){
+                    msg.channel.send(`Twitch user \`${username}\` not found!`)
+                    .catch(helper.discordErrorHandler);
+
+                    return false;
+                }
+
                 let id = twitchUser.id;
 
                 if(!(id in trackedChannels)){
@@ -271,6 +278,13 @@ function onMessage(msg){
             helper.log(`fetching ${username}`);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(id in trackedChannels){
@@ -370,6 +384,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -427,6 +448,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -486,6 +514,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -556,6 +591,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -626,6 +668,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -687,6 +736,13 @@ function onMessage(msg){
             helper.log('fetching', username);
 
         apiClient.helix.users.getUserByName(username).then(twitchUser => {
+            if(twitchUser === null){
+                msg.channel.send(`Twitch user \`${username}\` not found!`)
+                .catch(helper.discordErrorHandler);
+
+                return false;
+            }
+            
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
