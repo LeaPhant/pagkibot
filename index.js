@@ -6,6 +6,9 @@ const DEBUG = helper.getOption('debug');
 if(credentials.twitch.clientID.length == 0)
     throw "Please set a Twitch Client ID first. Check https://dev.twitch.tv/console/apps/create to register your application.";
 
+if(credentials.twitch.clientSecret.length == 0)
+    throw "Please set a Twitch Client Secret first. Check https://dev.twitch.tv/console/apps/create to register your application.";
+
 if(credentials.discord.clientID.length == 0)
     throw "Please set a Discord Client ID first. Check https://discordapp.com/developers/applications/ to register your application and get your Client ID.";
 
@@ -26,28 +29,16 @@ let sockets = [];
 
 const fse = require('fs-extra');
 const crypto = require('crypto');
-const axios = require('axios');
 const { URLSearchParams } = require('url');
 const WebSocket = require('ws');
 const Discord = require('discord.js');
 const moment = require('moment');
 
+const TwitchClient = require('twitch');
+
+const apiClient = TwitchClient.withClientCredentials(credentials.twitch.clientID, credentials.twitch.clientSecret);
+
 require("moment-duration-format");
-
-const helixApi = axios.create({
-    baseURL: 'https://api.twitch.tv/helix/',
-    headers: { 'Client-ID': credentials.twitch.clientID }
-
-});
-
-const krakenApi = axios.create({
-    baseURL: 'https://api.twitch.tv/kraken/',
-    headers: {
-        'Client-ID': credentials.twitch.clientID,
-        'Accept': 'application/vnd.twitchtv.v5+json'
-    }
-
-});
 
 const client = new Discord.Client({ autoReconnect: true });
 
@@ -150,30 +141,18 @@ function onMessage(msg){
         if(argv.length == 2){
             let username = argv[1];
 
-            helixApi.get('users', { params: { login: username } }).then(response => {
-                let data = response.data.data;
-
-                if(data.length == 0){
-                    msg.channel.send(`Twitch user \`${username}\` not found!`)
-                    .catch(helper.discordErrorHandler);
-
-                    return false;
-
-                }
-
-                let twitchUser = data[0];
-
+            apiClient.helix.users.getUserByName(username).then(twitchUser => {
                 let id = twitchUser.id;
 
                 if(!(id in trackedChannels)){
                     trackedChannels[id] = {
-                        username: twitchUser.login,
-                        display_name: twitchUser.display_name,
+                        username: twitchUser.name,
+                        display_name: twitchUser.displayName,
                         viewers: 0,
                         live: false,
                         game: "",
                         status: "",
-                        avatar: twitchUser.profile_image_url,
+                        avatar: twitchUser.profilePictureUrl,
                         channels: {},
                         dm_channels: {}
                     };
@@ -192,11 +171,11 @@ function onMessage(msg){
                     if(!(msg.author.id in trackedChannels[id].dm_channels)){
                         trackedChannels[id].dm_channels[msg.author.id] = {};
                         helper.saveJSON('trackedChannels', trackedChannels);
-                        msg.channel.send(`Now tracking \`${username}\``)
+                        msg.channel.send(`Now tracking \`${twitchUser.displayName}\``)
                         .catch(helper.discordErrorHandler);
 
                     }else{
-                        msg.channel.send(`Already tracking \`${username}\`!`)
+                        msg.channel.send(`Already tracking \`${twitchUser.displayName}\`!`)
                         .catch(helper.discordErrorHandler);
 
                         return false;
@@ -207,11 +186,11 @@ function onMessage(msg){
                     if(!(msg.channel.id in trackedChannels[id].channels)){
                         trackedChannels[id].channels[msg.channel.id] = {notifies: []};
                         helper.saveJSON('trackedChannels', trackedChannels);
-                        msg.channel.send(`Now tracking \`${username}\``)
+                        msg.channel.send(`Now tracking \`${twitchUser.displayName}\``)
                         .catch(helper.discordErrorHandler);
 
                     }else{
-                        msg.channel.send(`Already tracking \`${username}\`!`)
+                        msg.channel.send(`Already tracking \`${twitchUser.displayName}\`!`)
                         .catch(helper.discordErrorHandler);
 
                         return false;
@@ -221,23 +200,22 @@ function onMessage(msg){
                 }
 
                 let requests = [
-                    krakenApi.get(`channels/${id}`),
-                    krakenApi.get(`streams/${id}`)
+                    apiClient.kraken.channels.getChannel(id),
+                    apiClient.kraken.streams.getStreamByChannel(id)
                 ];
 
                 Promise.all(requests).then(data => {
-                    let twitchChannel = data[0].data;
+                    let twitchChannel = data[0];
+                    let twitchStream = data[1];
 
                     trackedChannels[id].game = twitchChannel.game;
                     trackedChannels[id].status = twitchChannel.status;
-
-                    let twitchStream = data[1].data.stream;
 
                     if(twitchStream !== null){
                         trackedChannels[id].live = true;
                         trackedChannels[id].viewers = twitchStream.viewers;
                         trackedChannels[id].peak_viewers = twitchStream.viewers;
-                        trackedChannels[id].start_date = moment(twitchStream.created_at).unix();
+                        trackedChannels[id].start_date = moment(twitchStream.startDate).unix();
 
                         let channel = msg.channel;
 
@@ -259,7 +237,6 @@ function onMessage(msg){
                             helper.saveJSON('trackedChannels', trackedChannels);
 
                         }).catch(helper.discordErrorHandler);
-
                     }
 
                     helper.saveJSON('trackedChannels', trackedChannels);
@@ -293,19 +270,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log(`fetching ${username}`);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
-
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(id in trackedChannels){
@@ -404,18 +369,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -472,18 +426,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -542,18 +485,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -623,18 +555,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -704,18 +625,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -776,18 +686,7 @@ function onMessage(msg){
         if(DEBUG)
             helper.log('fetching', username);
 
-        helixApi.get('users', { params: { login: username } }).then(response => {
-            let data = response.data.data;
-
-            if(data.length == 0){
-                msg.channel.send(`Twitch user \`${username}\` not found!`)
-                .catch(helper.discordErrorHandler);
-
-                return false;
-
-            }
-
-            let twitchUser = data[0];
+        apiClient.helix.users.getUserByName(username).then(twitchUser => {
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -984,26 +883,14 @@ function incomingPubSub(sub, socket){
             channel.live = true;
             channel.ending = false;
 
-            krakenApi.get(`channels/${channel_id}`).then(response => {
-                let data = response.data;
+            apiClient.kraken.channels.getChannel(id).then(_data => {
+                channel.game = _data.game;
+                channel.status = _data.status;
+                channel.peak_viewers = 0;
+                channel.viewers = 0;
+                channel.start_date = data.server_time;
 
-                channel.game = data.game;
-                channel.status = data.status;
-
-                /*if(moment().unix() - channel.end_date < 600){
-                    if(DEBUG)
-                        helper.log('last stream shortly ago, edit message');
-
-                    updateTwitchChannel(channel);
-
-                }else{*/
-                    channel.peak_viewers = 0;
-                    channel.viewers = 0;
-                    channel.start_date = data.server_time;
-
-                    postTwitchChannel(channel);
-
-                //}
+                postTwitchChannel(channel);
 
                 helper.saveJSON('trackedChannels', trackedChannels);
 
@@ -1224,33 +1111,22 @@ function updateChannels(){
     let stream_requests = [], user_requests = [];
 
     for(let i = 0; i < checkChannels.length; i += 100){
+        let _checkChannels = checkChannels.slice(i, i + 100);
+
         stream_requests.push(
-            krakenApi.get('streams', {
-                params: {
-                    limit: 100,
-                    channel: checkChannels.slice(i, i + 100).join(',')
-              }
-            })
+            apiClient.kraken.streams.getStreams(_checkChannels, undefined, undefined, undefined, 0, 100)
         );
-
-        let params = new URLSearchParams();
-        params.append('limit', 100);
-
-        checkChannels.slice(i, i + 100).forEach(channel => {
-            params.append('id', channel);
-        });
 
         user_requests.push(
-            helixApi.get(`users?${params.toString()}`)
+            apiClient.helix.users.getUsersByIds(_checkChannels)
         );
-
     }
 
     Promise.all(stream_requests).then(results => {
         let twitchStreams = [];
 
         results.forEach(result => {
-            twitchStreams = twitchStreams.concat(result.data.streams);
+            twitchStreams = twitchStreams.concat(result);
         });
 
         for(id in trackedChannels){
@@ -1265,7 +1141,7 @@ function updateChannels(){
             if(stream){
                 channel.game = stream.game;
                 channel.status = stream.channel.status;
-                channel.start_date = moment(stream.created_at).unix();
+                channel.start_date = moment(stream.startDate).unix();
                 channel.end_date = moment().unix();
             }
 
@@ -1308,14 +1184,14 @@ function updateChannels(){
         let twitchUsers = [];
 
         results.forEach(result => {
-            twitchUsers = twitchUsers.concat(result.data.data);
+            twitchUsers = twitchUsers.concat(result);
         });
 
         twitchUsers.forEach(twitchUser => {
             let channel = trackedChannels[twitchUser.id];
-            channel.username = twitchUser.login;
-            channel.display_name = twitchUser.display_name;
-            channel.avatar = twitchUser.profile_image_url;
+            channel.username = twitchUser.name;
+            channel.display_name = twitchUser.displayName;
+            channel.avatar = twitchUser.profilePictureUrl;
 
         });
 

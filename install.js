@@ -12,7 +12,8 @@ let custom_config = {};
 
 const default_credentials = {
     twitch: {
-        clientID: ""
+        clientID: "",
+        clientSecret: ""
     },
     discord: {
         clientID: "",
