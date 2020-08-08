@@ -1111,7 +1111,7 @@ function updateChannels(){
     let stream_requests = [], user_requests = [];
 
     for(let i = 0; i < checkChannels.length; i += 100){
-        let _checkChannels = checkChannels.slice(i, i + 100);
+        const _checkChannels = checkChannels.slice(i, i + 100);
 
         stream_requests.push(
             apiClient.kraken.streams.getStreams(_checkChannels, undefined, undefined, undefined, 0, 100)
@@ -1132,7 +1132,7 @@ function updateChannels(){
         for(id in trackedChannels){
             let channel = trackedChannels[id];
 
-            let filteredStreams = twitchStreams.filter(a => a.channel._id == id);
+            let filteredStreams = twitchStreams.filter(a => a._data.channel._id == id);
             let stream;
 
             if(filteredStreams.length > 0)
