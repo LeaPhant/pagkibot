@@ -10,10 +10,10 @@ if(credentials.twitch.clientSecret.length == 0)
     throw "Please set a Twitch Client Secret first. Check https://dev.twitch.tv/console/apps/create to register your application.";
 
 if(credentials.discord.clientID.length == 0)
-    throw "Please set a Discord Client ID first. Check https://discordapp.com/developers/applications/ to register your application and get your Client ID.";
+    throw "Please set a Discord Client ID first. Check https://discord.com/developers/applications/ to register your application and get your Client ID.";
 
 if(credentials.discord.token.length == 0)
-    throw "Please set a Discord Bot Token first. Check https://discordapp.com/developers/applications/ to register your application and create a bot.";
+    throw "Please set a Discord Bot Token first. Check https://discord.com/developers/applications/ to register your application and create a bot.";
 
 let trackedChannels = helper.loadJSON('trackedChannels');
 let redirectChannels = helper.loadJSON('redirectChannels');
@@ -45,7 +45,7 @@ const client = new Discord.Client({ autoReconnect: true });
 client.on('error', helper.error);
 
 client.once('ready', () => {
-    helper.log(`Invite bot to server: https://discordapp.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=8&scope=bot`);
+    helper.log(`Invite bot to server: https://discord.com/api/oauth2/authorize?client_id=${credentials.discord.clientID}&permissions=8&scope=bot`);
 
     let avatar_md5 = crypto.createHash('md5').update(fse.readFileSync(helper.getOption('avatarPath'))).digest("hex");
 
@@ -742,7 +742,7 @@ function onMessage(msg){
 
                 return false;
             }
-            
+
             let id = twitchUser.id;
 
             if(!(id in trackedChannels)){
@@ -880,7 +880,7 @@ function onMessage(msg){
                 },
                 author: {
                     name: "pagkibot",
-                    url: "https://discordapp.com",
+                    url: "https://github.com/LeaPhant/pagkibot",
                     icon_url: "https://cdn.discordapp.com/attachments/572429763700981780/572429816851202059/GlitchBadge_Purple_64px.png"
                 },
                 fields: [
