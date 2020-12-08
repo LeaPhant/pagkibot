@@ -121,8 +121,10 @@ module.exports = {
         if(!msg.content.startsWith(module.exports.getOption('prefix')))
             return false;
         
-        let hasPermission = 
-            command.perms.length == 0 || command.perms.some(perm => msg.member.hasPermission(perm));
+        let hasPermission = true;
+
+        if(command.perms.length > 0 && msg.member != null)
+            hasPermission = command.perms.length == 0 || command.perms.some(perm => msg.member.hasPermission(perm));
         
         if(!hasPermission)
             return false;
