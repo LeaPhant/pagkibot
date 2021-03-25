@@ -1,4 +1,4 @@
-<img src="https://github.com/LeaPhant/pagkibot/blob/master/res/logo.png?" height="150">
+<img src="https://github.com/LeaPhant/pagkibot/blob/main/res/logo.png?" height="150">
 
 Discord bot for instant Twitch live notifications using Twitch's PubSub API.
 
